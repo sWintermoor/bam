@@ -94,7 +94,7 @@ class QuinticWalk(Trajectory_2R):
             if velocities[i] != -1.0:
                 self.robot.set_joint_velocity(name, float(velocities[i]))
             else:
-                pass #TODO: Maximale Geschwindigkeit setzen
+                self.robot.model.upperVelocityLimit[name] #TODO: Überprüfen, ob tatsächlich die maximale Geschwindigkeit gesetzt wird.
         
         self.robot.update_kinematics()
 
