@@ -25,6 +25,7 @@ dxl = DynamixelActuatorV1(args.port)
 trajectory = trajectories[args.trajectory]
 
 start = time.time()
+# Bereitstellung der Startposition und des Drehmoments
 while time.time() - start < 1.0:
     goal_position, torque_enable = trajectory(0)
     if torque_enable:
@@ -43,6 +44,7 @@ data = {
     "entries": []
 }
 
+# Aufzeichnung der Trajektorie
 while time.time() - start < trajectory.duration:
     t = time.time() - start
     goal_position, new_torque_enable = trajectory(t)
@@ -63,7 +65,8 @@ while time.time() - start < trajectory.duration:
     entry["torque_enable"] = torque_enable
     data["entries"].append(entry)
 
-goal_position = data["entries"][-1]["position"]
+# Rückführung in die Ausgangsposition
+goal_position = data["entries"][-1]["position"] # Letzte Position als Zielposition setzen
 return_dt = 0.01
 max_variation = return_dt * 1.0
 while abs(goal_position) > 0:

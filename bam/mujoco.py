@@ -20,7 +20,7 @@ class MujocoController:
 
     def __init__(
         self,
-        model: Model,
+        model: Model, # Reibungsmodell
         actuator: str,
         mujoco_model: mujoco.MjModel,
         mujoco_data: mujoco.MjData,
@@ -33,7 +33,7 @@ class MujocoController:
         self.dofs = []
         self.q_target = np.zeros(len(self.actuator))
         self.dof_to_q_target = {}
-        for i, name in enumerate(self.actuator):
+        for i, name in enumerate(self.actuator): # Mapping der Aktuatoren zu den Zielpositionen
             self.dof_to_q_target[name] = i
 
         self.last_ts = mujoco_data.time
@@ -73,52 +73,53 @@ class MujocoController:
         - Friction parameters
         - Damping
         """
-        q = self.mujoco_data.qpos[self.qpos_indexes]
-        dq = self.mujoco_data.qvel[self.dof_indexes]
+        q = self.mujoco_data.qpos[self.qpos_indexes] # Position
+        dq = self.mujoco_data.qvel[self.dof_indexes] # Gelenkgeschwindigkeit
 
         # Computing the control signal
-        dt = self.mujoco_data.time - self.last_ts
-        self.last_ts = self.mujoco_data.time
-        control = self.model.actuator.compute_control(self.q_target, q, dq, dt)
+        dt = self.mujoco_data.time - self.last_ts # Delta Time
+        self.last_ts = self.mujoco_data.time # Update last time
+        control = self.model.actuator.compute_control(self.q_target, q, dq, dt) # Spannungssignal, um Aktuator zu bewegen
 
         # Computing the applied torque
-        torque = self.model.actuator.compute_torque(control, True, q, dq)
+        torque = self.model.actuator.compute_torque(control, True, q, dq) # Drehmoment, das angewendet werden soll
 
-        # Applying the torque
-        self.mujoco_data.ctrl[self.act_indexes] = torque
+        # Applying the torque -> STEUERWERTE WERDEN IN MUJOCO GESETZT UND ANGEWENDET
+        self.mujoco_data.ctrl[self.act_indexes] = torque # Setzung der Steuerwerte -> Ausführung hängt vom Aktuatortyp ab
 
-        # Updating friction parameters
+        # UPDATING FRICTION PARAMETERS
+
         torque_external = (
             -self.mujoco_data.qfrc_bias[self.dof_indexes]
             + self.mujoco_data.qfrc_constraint[self.dof_indexes]
-        )
+        ) # Berechnung des externen Drehmoments
 
         # Repeats the ids (now N_id x N_efc)
         efc_id_repeated = np.repeat(
             [self.mujoco_data.efc_id], len(self.actuator), axis=0
-        )
+        ) # 2D-Matrix, in der jede Zeile die komplette Liste aller Constraint-IDs enthält, eine Zeile pro Aktuator
         # Repeat the indexes (now N_id x N_efc)
         id_repeated = np.repeat(
             [self.joint_indexes], len(self.mujoco_data.efc_id), axis=0
-        ).T
+        ).T # Erstellen gleiche Matirx - jede Zeile enthält ID nur eines Aktuators
         # Do the batched test (element wise)
-        selector = efc_id_repeated == id_repeated
+        selector = efc_id_repeated == id_repeated # Elementweise Prüfung, ob die Constraint-ID zu einer Aktuator-ID passt
         # Use * as a logical and
         selector = selector * (
-            self.mujoco_data.efc_type == mujoco.mjtConstraint.mjCNSTR_FRICTION_DOF.value
+            self.mujoco_data.efc_type == mujoco.mjtConstraint.mjCNSTR_FRICTION_DOF.value # Prüfen, ob es sich um Reibungskontraint handelt
         )
         # Sum the forces
-        friction_force = np.sum(self.mujoco_data.efc_force * selector, axis=1)
+        friction_force = np.sum(self.mujoco_data.efc_force * selector, axis=1) # Reibungskraft pro Aktuator berechnen
 
-        torque_external -= friction_force
-        torque_actuator = self.mujoco_data.qfrc_actuator[self.dof_indexes]
+        torque_external -= friction_force # Externes Drehmoment um Reibungskraft reduzieren
+        torque_actuator = self.mujoco_data.qfrc_actuator[self.dof_indexes] # Drehmoment, das durch die betrachteten Aktuatoren erzeugt wird
 
         # Updating friction parameters
         frictionloss, damping = self.model.compute_frictions(
             torque_actuator, torque_external, dq
-        )
+        ) # Berechnung der Reibungsverluste (Coulomb-statische Reibung) und Dämpfung (viskose Reibung)
 
-        # Updating damping and frictionloss
+        # Updating damping and frictionloss -> WIRD IN MUJOCO ANGEWENDET!
         self.mujoco_model.dof_frictionloss[self.dof_indexes] = frictionloss
         self.mujoco_model.dof_damping[self.dof_indexes] = damping
 

@@ -1,6 +1,12 @@
 import numpy as np
 import placo
 
+from geometry_msgs.msg import Twist
+from rosgraph_msgs.msg import Clock
+
+from .trajectory_generator_node import TrajectoryGeneratorNode
+
+#TODO: Mit quintic_walk koppeln (ROS package)
 
 class Trajectory_2R:
     init_duration = None
@@ -9,14 +15,19 @@ class Trajectory_2R:
 
     def __init__(self) -> None:    
         # Load the robot
-        self.robot = placo.RobotWrapper('2R/2r_mx', placo.Flags.ignore_collisions)
+        self.robot = placo.RobotWrapper('Wolfgang/wolfgang_assets', placo.Flags.ignore_collisions)
 
         # Set initial configuration
-        self.robot.set_joint("R1", 1e-5)
-        self.robot.set_joint("R2", 1e-5)
-        self.robot.update_kinematics()
-        self.solver = self.robot.make_solver()
+        #TODO: Aus dem Urdf die Gelenknamen auslesen
 
+        for joint in self.robot.joint_names:
+            self.robot.set_joint(joint, 1e-5)
+            # self.robot.set_joint("R1", 1e-5)
+            # self.robot.set_joint("R2", 1e-5)
+        self.robot.update_kinematics()  # Damit der Roboter die Kinematik aktualisiert (wegen der gesetzten Gelenkwerte)
+        self.solver = self.robot.make_solver()  
+
+        # TODO: Überprfüfe, ob so richtig ist -> Hängt davon ab, wie der Roboter im URDF definiert ist
         # Base is fixed
         T_world_base = self.robot.get_T_world_frame("base")
         base_task = self.solver.add_frame_task("base", T_world_base)
@@ -34,7 +45,61 @@ class Trajectory_2R:
         Retrieve (r1, r2) at time t
         """
         raise NotImplementedError
+    
+class QuinticWalk(Trajectory_2R):
+    init_duration = 2.0 #TODO: Brauche ich das?
+    traj_duration = 10.0 #TODO: Brauche ich das?
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.traj_generator = TrajectoryGeneratorNode()
+
+        self.cmd_vel = Twist()
+        self.cmd_vel.linear.x = 0.0
+        self.cmd_vel.linear.y = 0.0
+        self.cmd_vel.linear.z = 0.0
+        self.cmd_vel.angular.x = 0.0
+        self.cmd_vel.angular.y = 0.0
+        self.cmd_vel.angular.z = 0.0
+
+        self.clock = Clock()
+        self.clock.clock.sec = 0
+        self.clock.clock.nanosec = 0
+
+
+    def __call__(self, t: float):
+        self.clock.clock.sec = int(t)
+        self.clock.clock.nanosec = int((t - self.clock.clock.sec) * 1_000_000_000)
+
+        if t < self.init_duration:
+            self.cmd_vel.linear.x = 0.0
+            joint_states = self.robot.get_joint_states_message() #TODO: Auf die richtige Weise joint_states erfassen
+            msg = self.traj_generator.calculate_trajectory(self.clock, self.cmd_vel, joint_states)
+
+        else:
+            self.cmd_vel.linear.x = 0.3  # Gehe vorwärts mit 0.3 m/s
+            joint_states = self.robot.get_joint_states_message() #TODO: Auf die richtige Weise joint_states erfassen
+            msg = self.traj_generator.calculate_trajectory(self.clock, self.cmd_vel, joint_states)
+
+        joint_names = list(msg.joint_names)
+        positions = list(msg.positions)
+        velocities = list(msg.velocities)
+
+        for i, name in enumerate(joint_names):
+            self.robot.set_joint(name, float(positions[i]))
+            if velocities[i] != -1.0:
+                self.robot.set_joint_velocity(name, float(velocities[i]))
+            else:
+                pass #TODO: Maximale Geschwindigkeit setzen
+        
+        self.robot.update_kinematics()
+
+        joints = []
+        for joint_name in self.robot.joint_names:
+            joints.append(self.robot.get_joint(joint_name))
+        return joints
+        
+"""
 
 class Square(Trajectory_2R): # Vererbung von Trajectory_2R
     init_duration = 6.0
@@ -186,11 +251,14 @@ class Circle(Trajectory_2R):
         self.robot.update_kinematics()
         return self.robot.get_joint("R1"), self.robot.get_joint("R2")
 
+"""
+
 trajectories = {
-    "square": Square(),
-    "circle": Circle(),
-    "square_wave": SquareWave(),
-    "triangular_wave": TriangularWave()
+    #"square": Square(),
+    #"circle": Circle(),
+    #"square_wave": SquareWave(),
+    #"triangular_wave": TriangularWave(),
+    "quintic_walk": QuinticWalk()
 }
 
 if __name__ == "__main__":
@@ -199,7 +267,8 @@ if __name__ == "__main__":
     # trajectory = Square()
     # trajectory = Circle()
     # trajectory = SquareWave()
-    trajectory = TriangularWave()
+    # trajectory = TriangularWave()
+    trajectory = QuinticWalk()
 
     print("Duration:", trajectory.traj_duration)
 
@@ -207,8 +276,8 @@ if __name__ == "__main__":
     rs = [trajectory(t) for t in ts]
     rs = np.array(rs)
 
-    plt.plot(ts, rs[:, 0], label="R1")
-    plt.plot(ts, rs[:, 1], label="R2")
+    for i in range(rs.shape[1]):
+        plt.plot(ts, rs[:, i], label=f"dxl_{i+1}")
     plt.xlabel("Time (s)")
     plt.ylabel("Angle (rad)")
     plt.legend()
@@ -220,8 +289,8 @@ if __name__ == "__main__":
     x = []
     z = []
     for r in truncated_rs:
-        trajectory.robot.set_joint("R1", r[0])
-        trajectory.robot.set_joint("R2", r[1])
+        for joint_name in trajectory.robot.joint_names:
+            trajectory.robot.set_joint(f"dxl_{i+1}", r[i])
         trajectory.robot.update_kinematics()
         end = trajectory.robot.get_T_world_frame("end")
         x.append(end[0, 3])
