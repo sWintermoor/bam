@@ -10,7 +10,6 @@ from .trajectory_Wolfgang import *
 NUMBER_DYNAMIXELS = 20
 
 arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument("--mass", type=float, required=True)
 arg_parser.add_argument("--port", type=str, default="/dev/ttyUSB0")
 arg_parser.add_argument("--logdir", type=str, required=True)
 arg_parser.add_argument("--trajectory", type=str, default="quintic_walk")
@@ -43,8 +42,6 @@ while time.time() - start < 1.0:
 
 start = time.time()
 data = {
-    "mass": args.mass,
-    "length": [0.18, 0.18],
     "kp": args.kp,
     "motor": args.motor,
     "trajectory": args.trajectory,

@@ -74,7 +74,7 @@ class MujocoSimulation2R:
         if self.robot is None:
             this_directory = os.path.dirname(os.path.realpath(__file__))
             self.robot = placo.RobotWrapper(
-                this_directory + f"/2r_{self.testbench}/robot.urdf",   #TODO: URDF für mein Modell finden
+                this_directory + f"/wolfgang_assets/urdf/robot.urdf",   
                 placo.Flags.ignore_collisions,
             )
             if self.testbench in ["mx"]:
