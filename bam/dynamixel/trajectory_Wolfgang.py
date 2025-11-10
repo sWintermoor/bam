@@ -15,19 +15,21 @@ class Trajectory_2R:
 
     def __init__(self) -> None:    
         # Load the robot
-        self.robot = placo.RobotWrapper('Wolfgang/wolfgang_assets', placo.Flags.ignore_collisions)
+        self.robot = placo.RobotWrapper('Wolfgang/wolfgang_assets/urdf', placo.Flags.ignore_collisions)
 
         # Set initial configuration
-        #TODO: Aus dem Urdf die Gelenknamen auslesen
 
-        for joint in self.robot.joint_names:
+        self.joint_names = self.robot.joint_names()
+
+        for joint in self.joint_names:
             self.robot.set_joint(joint, 1e-5)
             # self.robot.set_joint("R1", 1e-5)
             # self.robot.set_joint("R2", 1e-5)
         self.robot.update_kinematics()  # Damit der Roboter die Kinematik aktualisiert (wegen der gesetzten Gelenkwerte)
         self.solver = self.robot.make_solver()  
 
-        # TODO: Überprfüfe, ob so richtig ist -> Hängt davon ab, wie der Roboter im URDF definiert ist
+        # TODO: Das Konzept von base und end ist so nicht nutzbar. Vielleicht reicht es aus, base und end zu entfernen
+        """
         # Base is fixed
         T_world_base = self.robot.get_T_world_frame("base")
         base_task = self.solver.add_frame_task("base", T_world_base)
@@ -39,6 +41,8 @@ class Trajectory_2R:
         self.z_init = self.robot.get_T_world_frame("end")[2, 3]
         self.end_task = self.solver.add_position_task("end", np.array([self.x_init, self.y_offset, self.z_init]))
         self.end_task.configure("end", "soft", 1.0)
+
+        """
 
     def __call__(self, t: float):
         """
@@ -284,6 +288,8 @@ if __name__ == "__main__":
     plt.grid()
     plt.show()
 
+    """
+
     truncated_rs = rs[ts > trajectory.init_duration]
 
     x = []
@@ -299,3 +305,5 @@ if __name__ == "__main__":
     plt.plot(x, z)
     plt.axis('equal')
     plt.show()
+
+    """
