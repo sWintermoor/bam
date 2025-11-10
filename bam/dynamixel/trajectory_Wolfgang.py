@@ -77,12 +77,12 @@ class QuinticWalk(Trajectory_2R):
 
         if t < self.init_duration:
             self.cmd_vel.linear.x = 0.0
-            joint_states = self.robot.get_joint_states_message() #TODO: Auf die richtige Weise joint_states erfassen
+            joint_states = self.robot.get_joint() 
             msg = self.traj_generator.calculate_trajectory(self.clock, self.cmd_vel, joint_states)
 
         else:
             self.cmd_vel.linear.x = 0.3  # Gehe vorwärts mit 0.3 m/s
-            joint_states = self.robot.get_joint_states_message() #TODO: Auf die richtige Weise joint_states erfassen
+            joint_states = self.robot.get_joint() 
             msg = self.traj_generator.calculate_trajectory(self.clock, self.cmd_vel, joint_states)
 
         joint_names = list(msg.joint_names)
