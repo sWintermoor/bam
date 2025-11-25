@@ -12,7 +12,7 @@ from bam.mujoco import MujocoController
 
 NUMBER_DYNAMIXELS = 20
 
-class MujocoSimulation2R:
+class MujocoSimulationWolfgang:
     def __init__(self, testbench: str):
         """
         Loading the Wolfgang simulation
@@ -163,9 +163,9 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     args_parser = argparse.ArgumentParser()
-    args_parser.add_argument("--log", type=str, default="Wolfgang/log.json", nargs="+")
+    args_parser.add_argument("--log", type=str, default=["Wolfgang/log.json"], nargs="+")
     args_parser.add_argument("--params", type=str, default=[], nargs="+") # Modell
-    args_parser.add_argument("--testbench", type=str, required=True)
+    args_parser.add_argument("--testbench", type=str, required=True) #hier: mx
     args_parser.add_argument("--replay", action="store_true")
     args_parser.add_argument("--render", action="store_true")
     args_parser.add_argument("--plot", action="store_true")
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     args = args_parser.parse_args()
 
     # Loading bam model
-    sim = MujocoSimulation2R(testbench=args.testbench)
+    sim = MujocoSimulationWolfgang(testbench=args.testbench)
     maes = {}
 
     for log in args.log:
