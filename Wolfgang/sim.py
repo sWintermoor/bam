@@ -77,10 +77,12 @@ class MujocoSimulationWolfgang:
                 this_directory + f"/wolfgang_assets/urdf/robot.urdf",   
                 placo.Flags.ignore_collisions,
             )
+            """
             if self.testbench in ["mx"]:
                 self.robot.set_T_world_frame(
                     "base", tf.rotation_matrix(np.pi, [1, 0, 0])
                 )
+            """
 
         # Updating actuator KP
         model_dic = {}
@@ -88,14 +90,14 @@ class MujocoSimulationWolfgang:
             for index, param in enumerate(params.split(",")):
                 model_dic[f"param_{index + 1}"] = load_model(param) # Laden der Reibungsmodelle (model.py)
         else:
-            for i in range(self.robot.nq):
+            for index in range(NUMBER_DYNAMIXELS): # self.robot.nq
                 model_dic[f"param_{index + 1}"] = load_model(params) # Laden der Reibungsmodelle (model.py)
 
         if type(data["kp"]) is list:
-            for index in range(self.robot.nq):
+            for index in range(NUMBER_DYNAMIXELS): # self.robot.nq
                 model_dic[f"param_{index + 1}"].actuator.kp = data["kp"][index]
         else:
-            for index in range(self.robot.nq):
+            for index in range(NUMBER_DYNAMIXELS): # self.robot.nq
                 model_dic[f"param_{index + 1}"].actuator.kp = data["kp"]
 
         #TODO: Fix names of joints -> entries dxl_1, dxl_2, ...
@@ -103,7 +105,7 @@ class MujocoSimulationWolfgang:
         # Creating bam controllers
         if not replay:
             dxl_dic = {}
-            for index in range(self.robot.nq):
+            for index in range(NUMBER_DYNAMIXELS): #Vorher: self.robot.nq
                 dxl_dic[f"dxl_{index + 1}"] = MujocoController(
                     model_dic[f"param_{index + 1}"], f"dxl_{index+1}",self.model, self.data
                 ) # MujocoModelle, auf denenn Drehmomente und Reibungen angewendet werden (simuliert)
@@ -178,9 +180,12 @@ if __name__ == "__main__":
     sim = MujocoSimulationWolfgang(testbench=args.testbench)
     maes = {}
 
+    print(f"{args.log}")
+
     for log in args.log:
         # Loading log
         data = json.load(open(log)) # Laden der Simulationsdaten (Positionen, Geschwindigkeiten, Steuerwerte, Zeitstempel) (?)
+        print(f"Data: {data}")
         maes[log] = {}
         n = len(args.params)
 
@@ -198,8 +203,11 @@ if __name__ == "__main__":
         else:
             axs = [None] * n
 
+        print(f"Params: {args.params}")
+
         for params, ax in zip(args.params, axs):
             # Simulation wird ausgeführt
+            print("Ausführung eines Simulationsschrittes")
             sim.simulate_log(data, params, args.replay, args.render)
 
             # MAE berechnen und darstellen
