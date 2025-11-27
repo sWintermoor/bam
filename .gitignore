@@ -9,3 +9,4 @@ dist/
 bam.egg-info/
 /.venv
 .venv/
+.env

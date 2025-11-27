@@ -11,30 +11,23 @@ from bam.model import load_model
 from bam.mujoco import MujocoController
 from time import sleep
 
-NUMBER_DYNAMIXELS = 20
+NUMBER_DYNAMIXELS = 12 #20
+NUMBER_COMMANDS = 12
 
 def dxl(index):
     dxl = {
-        1: "HeadPan",
-        2: "HeadTilt",
-        3: "LAnklePitch",
-        4: "LAnkleRoll",
-        5: "LElbow",
-        6: "LHipPitch",
-        7: "LHipRoll",
-        8: "LHipYaw",
-        9: "LKnee",
-        10: "LShoulderPitch",
-        11: "LShoulderRoll",
-        12: "RAnklePitch",
-        13: "RAnkleRoll",
-        14: "RElbow",
-        15: "RHipPitch",
-        16: "RHipRoll",
-        17: "RHipYaw",
-        18: "RKnee",
-        19: "RShoulderPitch",
-        20: "RShoulderRoll",
+        1: "RHipYaw", 
+        2: "LHipYaw", 
+        3: "RHipRoll", 
+        4: "LHipRoll", 
+        5: "RHipPitch", 
+        6: "LHipPitch", 
+        7: "RKnee", 
+        8: "LKnee", 
+        9: "RAnklePitch", 
+        10: "LAnklePitch", 
+        11: "RAnkleRoll", 
+        12: "LAnkleRoll"
     }
     return dxl[index]
 
@@ -135,8 +128,6 @@ class MujocoSimulationWolfgang:
                     model_dic[f"param_{index + 1}"], f"{dxl(index+1)}",self.model, self.data
                 ) # MujocoModelle, auf denenn Drehmomente und Reibungen angewendet werden (simuliert)
 
-        #TODO: Code Refactoring beenden -> record und trajectory vorher refactorn
-
         # Setting initial configuration
         for index in range(NUMBER_DYNAMIXELS):
             self.data.joint(f"{dxl(index + 1)}").qpos[0] = data["entries"][0][f"{dxl(index + 1)}"]["position"] # Startposition setzen
@@ -147,7 +138,6 @@ class MujocoSimulationWolfgang:
         running = True
 
         while running:
-            print("step")
             entry = data["entries"][entry_index]
 
             if not replay:
@@ -169,7 +159,9 @@ class MujocoSimulationWolfgang:
 
             #sleep(2)
 
-            while running and (log_t0 + self.t >= entry["timestamp"]):
+            #print(f"Sim time: {self.t * 1_000_000_000} and new timestamp: {log_t0 + self.t * 1_000_000_000}")
+
+            while running and (log_t0 + (self.t * 1_000_000_000) >= entry["timestamp"]):
                 entry = data["entries"][entry_index]
                 entry_index += 1
                 for index in range(NUMBER_DYNAMIXELS):
@@ -215,7 +207,7 @@ if __name__ == "__main__":
     for log in args.log:
         # Loading log
         data = json.load(open(log)) # Laden der Simulationsdaten (Positionen, Geschwindigkeiten, Steuerwerte, Zeitstempel) (?)
-        print(f"Data: {data}")
+        #print(f"Data: {data}")
         maes[log] = {}
         n = len(args.params)
 
@@ -239,6 +231,8 @@ if __name__ == "__main__":
             # Simulation wird ausgeführt
             print("Ausführung eines Simulationsschrittes")
             sim.simulate_log(data, params, args.replay, args.render)
+
+            """
 
             # MAE berechnen und darstellen
             mae = 0
@@ -328,3 +322,5 @@ if __name__ == "__main__":
 
         for params in total_mae:
             print(f"Total MAE for {params}: {np.mean(total_mae[params])}")
+
+            """

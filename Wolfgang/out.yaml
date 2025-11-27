@@ -1,0 +1,4 @@
+output_bags:
+- uri: split1
+  storage_id: "mcap"
+  topics: [/gamestate, /joint_states, /DynamixelController/command]
