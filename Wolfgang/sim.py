@@ -9,8 +9,34 @@ import pandas
 from placo_utils.tf import tf
 from bam.model import load_model
 from bam.mujoco import MujocoController
+from time import sleep
 
 NUMBER_DYNAMIXELS = 20
+
+def dxl(index):
+    dxl = {
+        1: "HeadPan",
+        2: "HeadTilt",
+        3: "LAnklePitch",
+        4: "LAnkleRoll",
+        5: "LElbow",
+        6: "LHipPitch",
+        7: "LHipRoll",
+        8: "LHipYaw",
+        9: "LKnee",
+        10: "LShoulderPitch",
+        11: "LShoulderRoll",
+        12: "RAnklePitch",
+        13: "RAnkleRoll",
+        14: "RElbow",
+        15: "RHipPitch",
+        16: "RHipRoll",
+        17: "RHipYaw",
+        18: "RKnee",
+        19: "RShoulderPitch",
+        20: "RShoulderRoll",
+    }
+    return dxl[index]
 
 class MujocoSimulationWolfgang:
     def __init__(self, testbench: str):
@@ -72,6 +98,7 @@ class MujocoSimulationWolfgang:
         self, data: dict, params: str, replay: bool = False, render: bool = False
     ):
         if self.robot is None:
+            print("Loading placo robot...")
             this_directory = os.path.dirname(os.path.realpath(__file__))
             self.robot = placo.RobotWrapper(
                 this_directory + f"/wolfgang_assets/urdf/robot.urdf",   
@@ -100,21 +127,19 @@ class MujocoSimulationWolfgang:
             for index in range(NUMBER_DYNAMIXELS): # self.robot.nq
                 model_dic[f"param_{index + 1}"].actuator.kp = data["kp"]
 
-        #TODO: Fix names of joints -> entries dxl_1, dxl_2, ...
-
         # Creating bam controllers
         if not replay:
             dxl_dic = {}
             for index in range(NUMBER_DYNAMIXELS): #Vorher: self.robot.nq
-                dxl_dic[f"dxl_{index + 1}"] = MujocoController(
-                    model_dic[f"param_{index + 1}"], f"dxl_{index+1}",self.model, self.data
+                dxl_dic[f"{dxl(index + 1)}"] = MujocoController(
+                    model_dic[f"param_{index + 1}"], f"{dxl(index+1)}",self.model, self.data
                 ) # MujocoModelle, auf denenn Drehmomente und Reibungen angewendet werden (simuliert)
 
         #TODO: Code Refactoring beenden -> record und trajectory vorher refactorn
 
         # Setting initial configuration
         for index in range(NUMBER_DYNAMIXELS):
-            self.data.joint(f"dxl_{index + 1}").qpos[0] = data["entries"][0][f"dxl_{index + 1}"]["position"] # Startposition setzen
+            self.data.joint(f"{dxl(index + 1)}").qpos[0] = data["entries"][0][f"{dxl(index + 1)}"]["position"] # Startposition setzen
 
         log_t0 = data["entries"][0]["timestamp"]
         self.reset()
@@ -122,6 +147,7 @@ class MujocoSimulationWolfgang:
         running = True
 
         while running:
+            print("step")
             entry = data["entries"][entry_index]
 
             if not replay:
@@ -135,26 +161,30 @@ class MujocoSimulationWolfgang:
             if replay:
                 # If it's a replay, simply jump to the read position
                 for index in range(NUMBER_DYNAMIXELS):
-                    self.data.joint(f"dxl_{index + 1}").qpos[0] = entry[f"dxl_{index + 1}"]["position"] # Aktuelle Position wird auf die im Log gespeicherte Position gesetzt
+                    self.data.joint(f"{dxl(index + 1)}").qpos[0] = entry[f"{dxl(index + 1)}"]["position"] # Aktuelle Position wird auf die im Log gespeicherte Position gesetzt
 
             else:
                 for index in range(NUMBER_DYNAMIXELS):
-                    dxl_dic[f"dxl_{index + 1}"].set_q_target(f"dxl_{index + 1}", entry[f"dxl_{index + 1}"]["goal_position"]) # Zielposition für den jeweiligen Freiheitsgrad setzen
+                    dxl_dic[f"{dxl(index + 1)}"].set_q_target(f"{dxl(index + 1)}", entry[f"{dxl(index + 1)}"]["goal_position"]) # Zielposition für den jeweiligen Freiheitsgrad setzen
+
+            #sleep(2)
 
             while running and (log_t0 + self.t >= entry["timestamp"]):
                 entry = data["entries"][entry_index]
                 entry_index += 1
                 for index in range(NUMBER_DYNAMIXELS):
-                    entry[f"dxl_{index + 1}"]["sim_position"] = self.data.joint(f"dxl_{index + 1}").qpos[0] # Simulierte Position wird im Log gespeichert
+                    entry[f"{dxl(index + 1)}"]["sim_position"] = self.data.joint(f"{dxl(index + 1)}").qpos[0] # Simulierte Position wird im Log gespeichert
 
                 #TODO: Überprüfen, ob Endeffektoren relevant sind
                 entry["end_effector"] = {}
                 for position in "position", "goal_position", "sim_position":
                     for index in range(NUMBER_DYNAMIXELS):
-                        self.robot.set_joint(f"dxl_{index + 1}", entry[f"dxl_{index + 1}"][position]) # Gelenkwinkel für den jeweiligen Freiheitsgrad setzen
+                        self.robot.set_joint(f"{dxl(index + 1)}", entry[f"{dxl(index + 1)}"][position]) # Gelenkwinkel für den jeweiligen Freiheitsgrad setzen
                     self.robot.update_kinematics() # Kinematik des Roboters aktualisieren -> Wie?
+                    """
                     pos = self.robot.get_T_world_frame("end")[:3, 3] # Position des Endeffektors im Weltkoordinatensystem abrufen
                     entry["end_effector"][position] = pos
+                    """
 
                 if entry_index == len(data["entries"]):
                     running = False
@@ -165,7 +195,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     args_parser = argparse.ArgumentParser()
-    args_parser.add_argument("--log", type=str, default=["Wolfgang/log.json"], nargs="+")
+    args_parser.add_argument("--log", type=str, default=["Wolfgang/testlog.json"], nargs="+")
     args_parser.add_argument("--params", type=str, default=[], nargs="+") # Modell
     args_parser.add_argument("--testbench", type=str, required=True) #hier: mx
     args_parser.add_argument("--replay", action="store_true")
@@ -213,7 +243,7 @@ if __name__ == "__main__":
             # MAE berechnen und darstellen
             mae = 0
             for index in range(NUMBER_DYNAMIXELS):
-                dof = f"dxl_{index + 1}"
+                dof = dxl(index + 1)
                 errors = [
                     entry[dof]["position"] - entry[dof]["sim_position"]
                     for entry in data["entries"]
@@ -245,7 +275,7 @@ if __name__ == "__main__":
             # Visualisierung der Gelenkbewegungen und die Differenz zwischen gemessenen und simulierten Werten 
             if args.plot_joint:
                 for index in range(NUMBER_DYNAMIXELS):
-                    dof = f"dxl_{index + 1}"
+                    dof = dxl(index + 1)
                     # Creating two subplots axises
                     f, (ax1, ax2) = plt.subplots(2, sharex=True)
 
