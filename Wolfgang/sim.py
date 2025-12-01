@@ -167,17 +167,22 @@ class MujocoSimulationWolfgang:
                 for index in range(NUMBER_DYNAMIXELS):
                     entry[f"{dxl(index + 1)}"]["sim_position"] = self.data.joint(f"{dxl(index + 1)}").qpos[0] # Simulierte Position wird im Log gespeichert
 
-                #TODO: Überprüfen, ob Endeffektoren relevant sind
-                entry["end_effector"] = {}
+                """
+                for index in range(NUMBER_DYNAMIXELS):
+                    entry_positions[f"{dxl(index + 1)}"] = {}
+                """
+
                 for position in "position", "goal_position", "sim_position":
                     for index in range(NUMBER_DYNAMIXELS):
                         self.robot.set_joint(f"{dxl(index + 1)}", entry[f"{dxl(index + 1)}"][position]) # Gelenkwinkel für den jeweiligen Freiheitsgrad setzen
                     self.robot.update_kinematics() # Kinematik des Roboters aktualisieren -> Wie?
+                    
                     """
-                    pos = self.robot.get_T_world_frame("end")[:3, 3] # Position des Endeffektors im Weltkoordinatensystem abrufen
-                    entry["end_effector"][position] = pos
+                    for index in range(NUMBER_DYNAMIXELS):
+                        pos = self.robot.get_T_world_frame(f"{dxl(index + 1)}")[:3, 3] # Position des Endeffektors im Weltkoordinatensystem abrufen
+                        entry_positions[f"{dxl(index + 1)}"][position] = pos
                     """
-
+                        
                 if entry_index == len(data["entries"]):
                     running = False
 
@@ -232,7 +237,6 @@ if __name__ == "__main__":
             print("Ausführung eines Simulationsschrittes")
             sim.simulate_log(data, params, args.replay, args.render)
 
-            """
 
             # MAE berechnen und darstellen
             mae = 0
@@ -243,9 +247,10 @@ if __name__ == "__main__":
                     for entry in data["entries"]
                 ]
                 mae += np.mean(np.abs(errors))
-            mae /= 2 # Durchschnittlicher MAE über beide Freiheitsgrade
+            mae /= NUMBER_DYNAMIXELS # Durchschnittlicher MAE über alle Freiheitsgrade
             maes[log][params] = mae
 
+            """
             # Zeigt den Verlauf der Endeffektorposition an -> #TODO: Anpassen auf mein Modell
             if args.plot:
                 for position in "position", "goal_position", "sim_position":
@@ -265,6 +270,7 @@ if __name__ == "__main__":
                 ax.grid()
                 ax.set_aspect("equal", adjustable="box")
                 ax.set_title(f"{os.path.basename(log)}, {params}")
+                """
 
             # Visualisierung der Gelenkbewegungen und die Differenz zwischen gemessenen und simulierten Werten 
             if args.plot_joint:
@@ -323,4 +329,4 @@ if __name__ == "__main__":
         for params in total_mae:
             print(f"Total MAE for {params}: {np.mean(total_mae[params])}")
 
-            """
+            

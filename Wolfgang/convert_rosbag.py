@@ -115,7 +115,7 @@ if __name__ == "__main__":
             }
         entries.append(entry)
 
-    entries = entries[len(entries)//5:]  
+    entries = entries[len(entries)//5: (len(entries)//5) + 1000]  
 
     daten = {
         "kp": 32, 
