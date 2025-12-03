@@ -28,23 +28,25 @@ class DynamixelActuatorV1:
         if result != 0:
             raise Exception("Failed to set low latency mode (you can try: sudo apt install setserial)")
 
-        self.portHandler = PortHandler(port)
-        self.packetHandler = PacketHandler(1.0)
+        self.portHandler = PortHandler(port) # Baud Rate muss auch dort angepasst werden.
+        self.packetHandler = PacketHandler(1.0) #Vorher 1.0?
 
         self.portHandler.openPort()
-        self.portHandler.setBaudRate(1000000)
+        self.portHandler.setBaudRate(57600)
 
     def set_p_gain(self, gain: int):
         # Set P gain
         self.packetHandler.write2ByteTxOnly(
             self.portHandler, self.id, ADDR_P_GAIN, gain
         )
+        #self.portHandler.clearPort()
 
     def set_torque(self, enable: bool):
         # Enable torque
         self.packetHandler.write1ByteTxOnly(
             self.portHandler, self.id, ADDR_TORQUE_ENABLE, 1 if enable else 0
         )
+        #self.portHandler.clearPort()
 
     def set_goal_position(self, position: float):
         # Position is a 12-bit value
@@ -54,12 +56,24 @@ class DynamixelActuatorV1:
         self.packetHandler.write2ByteTxOnly(
             self.portHandler, self.id, ADDR_GOAL_POSITION, position
         )
+        #self.portHandler.clearPort()
+
+    def debug_read_data(self):
+        data, result, error = self.packetHandler.readTxRx(
+            self.portHandler, self.id, ADDR_PRESENT_POSITION, 8
+        )
+
+        print(f"Data, Result, Error: {data, result, error}")
 
     def read_data(self):
         # Reading position, speed, load, voltage and temperature
         data, result, error = self.packetHandler.readTxRx(
             self.portHandler, self.id, ADDR_PRESENT_POSITION, 8
         )
+        print(error)
+        print(result)
+
+        print(f"Data: {data}")
 
         # Position is a 12-bit value
         position = (data[1] << 8) | data[0]
