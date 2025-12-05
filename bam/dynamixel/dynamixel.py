@@ -36,14 +36,14 @@ class DynamixelActuatorV1:
 
     def set_p_gain(self, gain: int):
         # Set P gain
-        self.packetHandler.write2ByteTxOnly(
+        self.packetHandler.write2ByteTxRx(
             self.portHandler, self.id, ADDR_P_GAIN, gain
         )
         #self.portHandler.clearPort()
 
     def set_torque(self, enable: bool):
         # Enable torque
-        self.packetHandler.write1ByteTxOnly(
+        self.packetHandler.write1ByteTxRx(
             self.portHandler, self.id, ADDR_TORQUE_ENABLE, 1 if enable else 0
         )
         #self.portHandler.clearPort()
@@ -53,7 +53,7 @@ class DynamixelActuatorV1:
         position = int(4096 * (position / (2 * np.pi) + 0.5))
 
         # Set goal position
-        self.packetHandler.write2ByteTxOnly(
+        self.packetHandler.write2ByteTxRx(
             self.portHandler, self.id, ADDR_GOAL_POSITION, position
         )
         #self.portHandler.clearPort()
@@ -70,10 +70,10 @@ class DynamixelActuatorV1:
         data, result, error = self.packetHandler.readTxRx(
             self.portHandler, self.id, ADDR_PRESENT_POSITION, 8
         )
-        print(error)
-        print(result)
+        print(f"Read data error: {error}")
+        print(f"Read data result: {result}")
 
-        print(f"Data: {data}")
+        #print(f"Data: {data}")
 
         # Position is a 12-bit value
         position = (data[1] << 8) | data[0]

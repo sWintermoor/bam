@@ -51,8 +51,8 @@ data = {
 while time.time() - start < trajectory.duration:
     t = time.time() - start
     goal_position, new_torque_enable = trajectory(t)
-    print(f"Goal Position: {goal_position}")
-    print(f"New Torque Enable: {new_torque_enable}")
+    #print(f"Goal Position: {goal_position}")
+    #print(f"New Torque Enable: {new_torque_enable}")
     if new_torque_enable != torque_enable:
         dxl.set_torque(new_torque_enable)
         torque_enable = new_torque_enable
@@ -70,8 +70,10 @@ while time.time() - start < trajectory.duration:
         entry["torque_enable"] = torque_enable
         data["entries"].append(entry)
     except:
-        pass
+        print("Fehler Datum zu lesen")
 
+print(f"Datenlänge: {len(data["entries"])}")
+#print(f"Daten: {data["entries"]}")
 # Rückführung in die Ausgangsposition
 goal_position = data["entries"][-1]["position"] # Letzte Position als Zielposition setzen
 return_dt = 0.01
