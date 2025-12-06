@@ -76,7 +76,7 @@
     <material name="black" rgba="0.2 0.2 0.2 1"/>
   </asset>
   <worldbody>
-    <body name="torso" pos="0.0 0.0 0.4274" quat="0.999 0.0 0.05 0.0">
+    <body name="torso" pos="0.0 0.0 0.39" quat="0.999 0.0 0.05 0.0"> <!-- 0.378 -->
       <geom pos="-0.0015 0.053 0.2035" quat="9.38184e-07 -0.707105 9.38187e-07 0.707108" type="mesh" mesh="mx-64-body" class="visual"/>
     <geom size="0.0201 0.0205 0.03055" pos="0.01605 0.053 0.2035" quat="9.38184e-07 -0.707105 9.38187e-07 0.707108" type="box" rgba="0.647059 0.647059 0.647059 1" class="collision"/>
     <geom pos="-0.0015 -0.053 0.2035" quat="0.707105 0 -0.707108 0" type="mesh" mesh="mx-64-body" class="visual"/>
@@ -375,6 +375,7 @@
                 <geom pos="0.0234568 0.0618337 -0.0463905" quat="0.707105 0 0 -0.707108" type="mesh" mesh="foot_cover" class="visual"/>
                 <geom size="0.02 0.053 0.0095" pos="0.0149998 0.120225 -0.0192245" quat="0.707105 0 0 -0.707108" type="box" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
                 <geom size="0.0255 0.037 0.001" pos="0.0149998 0.1625 -0.0232245" quat="0.171497 0.685994 0.685997 -0.171495" type="box" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
+                
                 <geom pos="-0.03 -0.007 -0.044" quat="0.707105 0 0 -0.707108" type="mesh" mesh="flex_stollen" class="visual"/>
                 <geom size="0.006 0.005" pos="-0.03 -0.007 -0.039" quat="0.707105 0 0 -0.707108" type="cylinder" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
                 <geom size="0.006" pos="-0.03 -0.007 -0.044" quat="0.707105 0 0 -0.707108" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
@@ -386,7 +387,7 @@
                 <geom size="0.006" pos="0.06 0.177 -0.044" quat="0.707105 0 0 -0.707108" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
                 <geom pos="0.06 -0.007 -0.044" quat="0.707105 0 0 -0.707108" type="mesh" mesh="flex_stollen" class="visual"/>
                 <geom size="0.006 0.005" pos="0.06 -0.007 -0.039" quat="0.707105 0 0 -0.707108" type="cylinder" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
-                <geom size="0.006" pos="0.06 -0.007 -0.044" quat="0.707105 0 0 -0.707108" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
+                <geom size="0.006" pos="0.06 -0.007 -0.044" quat="0.707105 0 0 -0.707108" rgba="0.717647 0.717647 0.717647 1" class="collision"/> 
               </body>
             </body>
           </body>
@@ -534,6 +535,7 @@
                 <geom size="0.004 0.02 0.002" pos="0.03 0.1635 -0.032" quat="1 0 0 0" type="box" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
                 <geom pos="-0.06 0.0065 -0.034" quat="1 0 0 0" type="mesh" mesh="load_cell" class="visual"/>
                 <geom size="0.004 0.02 0.002" pos="-0.06 0.0065 -0.032" quat="1 0 0 0" type="box" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
+                
                 <geom pos="-0.06 -0.007 -0.044" quat="0.707105 0 0 -0.707108" type="mesh" mesh="flex_stollen" class="visual"/>
                 <geom size="0.006 0.005" pos="-0.06 -0.007 -0.039" quat="0.707105 0 0 -0.707108" type="cylinder" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
                 <geom size="0.006" pos="-0.06 -0.007 -0.044" quat="0.707105 0 0 -0.707108" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
@@ -545,7 +547,7 @@
                 <geom size="0.006" pos="0.03 0.177 -0.044" quat="0.707105 0 0 -0.707108" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
                 <geom pos="0.03 -0.007 -0.044" quat="0.707105 0 0 -0.707108" type="mesh" mesh="flex_stollen" class="visual"/>
                 <geom size="0.006 0.005" pos="0.03 -0.007 -0.039" quat="0.707105 0 0 -0.707108" type="cylinder" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
-                <geom size="0.006" pos="0.03 -0.007 -0.044" quat="0.707105 0 0 -0.707108" rgba="0.717647 0.717647 0.717647 1" class="collision"/>
+                <geom size="0.006" pos="0.03 -0.007 -0.044" quat="0.707105 0 0 -0.707108" rgba="0.717647 0.717647 0.717647 1" class="collision"/> 
               </body>
             </body>
           </body>

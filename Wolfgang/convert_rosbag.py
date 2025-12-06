@@ -115,7 +115,11 @@ if __name__ == "__main__":
             }
         entries.append(entry)
 
-    entries = entries[len(entries)//5: (len(entries)//5) + 1000]  
+    """
+    print(f"Total Entries: {len(entries)}")
+    print(f"Removing first 10% of data to avoid interpolation artifacts: {len(entries)//10} entries removed.")
+    """
+    entries = entries[len(entries)//6.5:]  
 
     daten = {
         "kp": 32, 
