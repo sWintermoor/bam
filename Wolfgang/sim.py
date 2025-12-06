@@ -113,6 +113,11 @@ class MujocoSimulationWolfgang:
             for index in range(NUMBER_DYNAMIXELS): # self.robot.nq
                 model_dic[f"param_{index + 1}"] = load_model(params) # Laden der Reibungsmodelle (model.py)
 
+        if len(model_dic) != NUMBER_DYNAMIXELS:
+            raise ValueError(
+                f"Number of params ({len(model_dic)}) does not match number of joints ({NUMBER_DYNAMIXELS})"
+            )
+
         if type(data["kp"]) is list:
             for index in range(NUMBER_DYNAMIXELS): # self.robot.nq
                 model_dic[f"param_{index + 1}"].actuator.kp = data["kp"][index]
