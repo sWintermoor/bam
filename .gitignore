@@ -10,4 +10,5 @@ bam.egg-info/
 /.venv
 .venv/
 .env
-./bam/dynamixel/data_raw/
+**/data_raw/*
+**/Wolfgang/log.json
