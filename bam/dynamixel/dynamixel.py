@@ -32,7 +32,7 @@ class DynamixelActuatorV1:
         self.packetHandler = PacketHandler(1.0) #Vorher 1.0?
 
         self.portHandler.openPort()
-        self.portHandler.setBaudRate(57600)
+        self.portHandler.setBaudRate(57600) # Für Mx106: 57600
 
     def set_p_gain(self, gain: int):
         # Set P gain

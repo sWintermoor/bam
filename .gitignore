@@ -10,3 +10,4 @@ bam.egg-info/
 /.venv
 .venv/
 .env
+./bam/dynamixel/data_raw/
