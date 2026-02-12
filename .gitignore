@@ -11,4 +11,6 @@ bam.egg-info/
 .venv/
 .env
 **/data_raw/*
+**/data_processed/*
+**/data_processed_rhoban/*
 **/Wolfgang/log.json
